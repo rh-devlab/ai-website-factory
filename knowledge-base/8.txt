@@ -1,0 +1,143 @@
+# SOURCE 17: MOBILE-FIRST RESPONSIVE BREAKPOINTS & FLUID LAYOUT RULES
+# Role: Principal Responsive UI Architect
+==========================================================================
+
+## 1. MOBILE-FIRST BREAKPOINT SYSTEM (TAILWIND V4 & CSS)
+- ALWAYS write base styles for mobile viewports first (320px to 639px), then layer progressive enhancements using min-width breakpoints:
+  - Base (default): 0px to 639px (Single-column stack, full-width buttons, stacked cards)
+  - sm: (640px+): Large phones / landscape mobile (2-column compact grids)
+  - md: (768px+): Tablets (2-to-3 column grids, horizontal navigation transitions)
+  - lg: (1024px+): Laptops / Desktops (Full desktop navigation, sidebars, asymmetric Bento grids)
+  - xl: (1280px+): Wide Desktops (max-w-7xl mx-auto container alignment)
+  - 2xl: (1536px+): Ultra-wide screens (Prevent excessive line stretch with max-w-7xl)
+
+## 2. MANDATORY MOBILE VIEWPORT & TOUCH SAFETY RULES
+- **Zero Horizontal Overflow:** NEVER allow overflow-x scrolling on mobile. Constrain media with max-w-full, wrap wide tables in <div className="overflow-x-auto">, and add min-w-0 on flex/grid children containing long text or URLs.
+- **Dynamic Viewport Height:** ALWAYS use min-h-dvh instead of min-h-screen or 100vh so mobile browser address bars never clip bottom CTAs.
+- **Touch Target Minimum:** Every interactive button, link, or input on mobile MUST have a minimum touch target of 44px x 44px (min-h-11 min-w-11) with at least 8px (gap-2) spacing between adjacent controls.
+- **iOS Auto-Zoom Prevention:** Form <input>, <select>, and <textarea> elements MUST have font-size: 16px (text-base) on mobile so iOS Safari does not forcefully zoom in on focus.
+
+==========================================================================
+# SOURCE 23: FORM VALIDATION & UX FEEDBACK (ZOD + REACT HOOK FORM)
+# Role: Principal Frontend Form & Validation Engineer
+==========================================================================
+
+## 1. FORM UX & ACCESSIBILITY STANDARDS
+- **Never Rely on Placeholders Alone:** Every form field MUST have a visible <label htmlFor="..."> above the input.
+- **Validate on Blur, Re-validate on Change:** Configure mode: "onTouched" so users are not yelled at while typing their first character, but errors clear immediately once corrected.
+- **Accessible Error Linking:** Link every error message to its input using aria-invalid={!!error} and aria-describedby so screen readers announce the exact fix.
+- **Double-Submit Protection:** Disable the submit button (disabled={isSubmitting}) and show a loading spinner + text ("Submitting...") during async requests.
+
+## 2. PRODUCTION ZOD + REACT HOOK FORM BLUEPRINT
+import { z } from "zod";
+
+export const contactFormSchema = z.object({
+  fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(80, "Name is too long"),
+  email: z.string().trim().email("Please enter a valid email address"),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[1-9]\d{7,14}$/, "Enter a valid phone number with country code")
+    .optional()
+    .or(z.literal("")),
+  message: z.string().trim().min(10, "Message must be at least 10 characters").max(1000, "Maximum 1000 characters"),
+});
+
+export type ContactFormValues = z.infer<typeof contactFormSchema>;
+
+/* Client Form Component Usage Pattern:
+   1. const form = useForm<ContactFormValues>({ resolver: zodResolver(contactFormSchema), mode: "onTouched" });
+   2. Render inline error right beneath each input:
+      {errors?.email && (
+        <p id="email-error" role="alert" className="mt-1.5 text-xs font-medium text-destructive">
+          {errors.email.message}
+        </p>
+      )}
+   3. On server submission failure, surface a clear form-level alert banner with a retry path.
+*/
+
+==========================================================================
+# SOURCE 24: TECHNICAL SEO, METADATA API & JSON-LD SCHEMA OPTIMIZATION
+# Role: Principal Technical SEO Architect
+==========================================================================
+
+## 1. NEXT.JS APP ROUTER METADATA API BLUEPRINT (app/layout.tsx & page.tsx)
+Every public web application MUST export complete static or dynamic Metadata including OpenGraph, Twitter Cards, Canonical URLs, and Robots directives:
+
+import type { Metadata } from "next";
+
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] || "https://example.com";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Brand Name — Clear Value Proposition",
+    template: "%s | Brand Name",
+  },
+  description: "Actionable, keyword-optimized summary between 120 and 155 characters.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "Brand Name",
+    title: "Brand Name — Clear Value Proposition",
+    description: "Compelling social preview description.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Brand Preview" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Brand Name — Clear Value Proposition",
+    description: "Compelling social preview description.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
+
+## 2. DYNAMIC sitemap.ts, robots.ts & JSON-LD STRUCTURED DATA
+- Always include app/robots.ts and app/sitemap.ts in full-stack Next.js projects so search crawlers index all public routes automatically.
+- Embed valid Schema.org JSON-LD (SoftwareApplication, Product, Article, or FAQPage) inside a <script type="application/ld+json"> tag on key pages for Google Rich Snippets:
+
+export function JsonLdSchema({ data }: { data: Record<string, unknown> }) {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  );
+}
+
+==========================================================================
+# SOURCE 25: CORE WEB VITALS & IMAGE/FONT PERFORMANCE OPTIMIZATION
+# Role: Principal Web Performance Engineer
+==========================================================================
+
+## 1. CORE WEB VITALS TARGET BUDGETS (2026 GOOGLE STANDARDS)
+- **LCP (Largest Contentful Paint) <= 2.5s:**
+  - The above-the-fold Hero image MUST use priority (in next/image) or fetchpriority="high" (in standard HTML) and MUST NOT have loading="lazy".
+  - Preconnect to critical third-party origins (<link rel="preconnect" href="https://googleapis.com">).
+- **CLS (Cumulative Layout Shift) <= 0.1 (Target: 0.00):**
+  - EVERY <img> or <Image> MUST specify explicit width and height attributes (or a parent container with aspect-video / aspect-square).
+  - Reserve exact height for async banners, ads, and skeleton loaders so content never jumps after hydration.
+- **INP (Interaction to Next Paint) <= 200ms:**
+  - Offload heavy filtering/sorting to useMemo or useTransition so button clicks and typing feel instantaneous.
+  - Lazy-load below-the-fold heavy widgets (charts, maps, rich-text editors, 3D canvases) using next/dynamic with { ssr: false }.
+
+## 2. NEXT.JS IMAGE & FONT OPTIMIZATION RULES
+- **Self-Hosted Zero-CLS Fonts (next/font/google):**
+  - NEVER load Google Fonts via external <link> tags in Next.js projects; always import from next/font/google with display: "swap" so Next.js self-hosts them with automatic size-adjust fallbacks.
+- **Responsive Image Sizing (sizes prop):**
+  - Whenever using <Image fill ... />, ALWAYS provide an accurate sizes attribute (e.g., sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw") so mobile devices do not download 4K desktop images.
+- **Modern Formats:** Prefer WebP or AVIF over heavy PNG/JPEG files, and use inline crisp SVGs for logos and UI icons.

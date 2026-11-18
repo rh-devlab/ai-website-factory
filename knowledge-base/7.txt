@@ -1,0 +1,523 @@
+# SOURCE 19: HIGH-CONVERTING SAAS LANDING PAGE ARCHITECTURE BLUEPRINT
+# Role: Principal Conversion Architect & SaaS UI Engineer
+==========================================================================
+
+## 1. MANDATORY SECTION FLOW & PSYCHOLOGICAL HIERARCHY
+Whenever the user requests a SaaS landing page, startup homepage, or software product website, follow this exact 8-section conversion blueprint in order:
+
+1. **Sticky Glassmorphic Navbar (`<header>`):**
+   - Left: Crisp SVG Brand Logo + Name.
+   - Center: Max 4 navigation links (`Features`, `How It Works`, `Pricing`, `FAQ`).
+   - Right: Secondary `Sign In` ghost button + Primary high-contrast `Start Free Trial` button.
+   - Mobile: Accessible hamburger drawer with keyboard focus trap.
+
+2. **Above-the-Fold Hero Section (`<section>`):**
+   - Eyebrow Pill Badge: Announcement or social proof metric (e.g., `"Trusted by 12,000+ engineering teams"`).
+   - Main `<h1>` Headline: Outcome-driven value proposition (`max-w-3xl text-balance`, 6–10 words max).
+   - Subheadline: Explains how it works in 2 lines (`max-w-2xl text-muted-foreground`).
+   - Dual CTA Row: Primary CTA (`Start Building Free` with right arrow icon) + Secondary CTA (`Watch 2-Min Demo`).
+   - Micro-Trust Line: `"No credit card required • 14-day free trial • Cancel anytime"`.
+   - Hero Visual Anchor: Interactive app dashboard preview mockup framed with subtle border and layered elevation shadow.
+
+3. **Social Proof Logo Cloud:**
+   - Muted grayscale company/partner logos (`opacity-60 hover:opacity-100 transition`) with heading `"Powering modern workflows at"`.
+
+4. **Problem vs. Solution Contrast Strip:**
+   - 2-column side-by-side comparison card (`The Old Way` with muted red indicators vs. `The New Way` with emerald checkmarks).
+
+5. **Bento-Style Core Features Grid:**
+   - Asymmetric 12-column Bento Grid showcasing 4 to 6 core product capabilities with icon badges, concise titles, and mini UI previews inside each card.
+
+6. **Interactive 3-Step "How It Works" Workflow:**
+   - Numbered horizontal timeline (`01 Connect`, `02 Configure`, `03 Launch`) with clear visual connectors.
+
+7. **Transparent Pricing Matrix (Monthly / Annual Billing Toggle):**
+   - Interactive state toggle (`Monthly` vs. `Yearly — Save 20%`) with 3-Tier Cards (`Starter`, `Pro — Most Popular` highlighted with `ring-2 ring-primary`, and `Enterprise`) + Feature Comparison Table.
+
+8. **Objection-Handling FAQ & Final Conversion Banner:**
+   - Accessible Accordion answering 5–6 real buyer objections + High-contrast Final CTA Banner + 4-column `<footer>`.
+
+## 2. SAAS PRICING TOGGLE & TIER CARD PRODUCTION PATTERN
+"use client";
+import { useState } from "react";
+import { Check } from "lucide-react";
+
+export interface PricingTier {
+  name: string;
+  description: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  popular?: boolean;
+  features: string[];
+  ctaText: string;
+}
+
+export function SaaSPricingSection({ tiers }: { tiers: PricingTier[] }) {
+  const [annual, setAnnual] = useState(true);
+
+  return (
+    <section id="pricing" className="mx-auto max-w-7xl px-4 py-24">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Simple, transparent pricing</h2>
+        <div className="mt-6 inline-flex items-center gap-3 rounded-full border bg-muted/50 p-1">
+          <button
+            type="button"
+            onClick={() => setAnnual(false)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${!annual ? "bg-background shadow-xs" : "text-muted-foreground"}`}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setAnnual(true)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${annual ? "bg-background shadow-xs" : "text-muted-foreground"}`}
+          >
+            Yearly <span className="ml-1 text-xs font-semibold text-emerald-600">Save 20%</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-3">
+        {tiers.map((tier) => (
+          <div
+            key={tier.name}
+            className={`relative flex flex-col rounded-3xl border bg-card p-8 ${
+              tier.popular ? "border-primary ring-2 ring-primary shadow-xl" : "border-border shadow-xs"
+            }`}
+          >
+            {tier.popular && (
+              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-primary-foreground">
+                Most Popular
+              </span>
+            )}
+            <h3 className="text-xl font-bold">{tier.name}</h3>
+            <p className="mt-2 text-sm text-muted-foreground">{tier.description}</p>
+            <div className="mt-6 flex items-baseline gap-1">
+              <span className="text-4xl font-extrabold tabular-nums">
+                ${annual ? tier.yearlyPrice : tier.monthlyPrice}
+              </span>
+              <span className="text-sm text-muted-foreground">/month</span>
+            </div>
+            <ul className="mt-8 flex-1 space-y-3 text-sm">
+              {tier.features.map((feat) => (
+                <li key={feat} className="flex items-start gap-2.5">
+                  <Check className="mt-0.5 size-4 shrink-0 text-emerald-500" />
+                  <span>{feat}</span>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className={`mt-8 w-full rounded-xl py-3 text-sm font-semibold transition ${
+                tier.popular
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "border border-input bg-background hover:bg-accent"
+              }`}
+            >
+              {tier.ctaText}
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+==========================================================================
+# SOURCE 20: ENTERPRISE ADMIN DASHBOARD & DATA VISUALIZATION UI GUIDE
+# Role: Principal Dashboard Architect & Data Visualization Engineer
+==========================================================================
+
+## 1. PERSISTENT APPLICATION SHELL & CHART RULES
+- **Layout Shell:** Left Collapsible Sidebar (`w-64` desktop, slide-over drawer on mobile) + Sticky Top Utility Header (`h-16` with Breadcrumbs, `Cmd + K` search, Notifications, Theme toggle) + Main Scrollable Workspace (`bg-muted/30 p-6`).
+- **Workspace Grid:** Top Row 4-Column KPI Stat Cards (`tabular-nums` + directional delta icon) -> Middle Row 12-Column Asymmetric Chart Grid (`lg:col-span-8` primary time-series chart + `lg:col-span-4` breakdown/activity feed) -> Bottom Row Searchable, Filterable, Sortable Data Table.
+- **Chart Accessibility:** Always wrap Recharts/Chart.js in a responsive container with a visible legend, hover/keyboard tooltip, and non-color-only indicators. Handle Loading (Skeleton), Empty, and Error states explicitly.
+
+## 2. KPI METRIC CARD & ENTERPRISE DATA TABLE
+import { ArrowUpRight, ArrowDownRight, Search, ArrowUpDown, ChevronLeft, ChevronRight, Inbox, type LucideIcon } from "lucide-react";
+import { useState, useMemo } from "react";
+
+interface KpiCardProps {
+  title: string;
+  value: string;
+  change: number;
+  period?: string;
+  icon: LucideIcon;
+}
+
+export function KpiMetricCard({ title, value, change, period = "vs last month", icon: Icon }: KpiCardProps) {
+  const isPositive = change >= 0;
+  return (
+    <div className="rounded-2xl border border-border bg-card p-6 shadow-xs">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-muted-foreground">{title}</span>
+        <div className="rounded-lg bg-primary/10 p-2 text-primary">
+          <Icon className="size-4" />
+        </div>
+      </div>
+      <div className="mt-3 text-3xl font-bold tracking-tight tabular-nums">{value}</div>
+      <div className="mt-2 flex items-center gap-1.5 text-xs">
+        <span className={`inline-flex items-center font-semibold ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+          {isPositive ? <ArrowUpRight className="size-3.5" /> : <ArrowDownRight className="size-3.5" />}
+          {Math.abs(change)}%
+        </span>
+        <span className="text-muted-foreground">{period}</span>
+      </div>
+    </div>
+  );
+}
+
+export interface DataRecord {
+  id: string;
+  customer: string;
+  email: string;
+  status: "active" | "pending" | "failed";
+  amountCents: number;
+  date: string;
+}
+
+const STATUS_STYLES: Record<DataRecord["status"], string> = {
+  active: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  pending: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  failed: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+};
+
+export function EnterpriseDataTable({ records }: { records: DataRecord[] }) {
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | DataRecord["status"]>("all");
+  const [sortAsc, setSortAsc] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  const filteredAndSorted = useMemo(() => {
+    return records
+      .filter((r) => {
+        const matchesStatus = statusFilter === "all" || r.status === statusFilter;
+        const matchesQuery =
+          r.customer.toLowerCase().includes(query.toLowerCase()) ||
+          r.email.toLowerCase().includes(query.toLowerCase()) ||
+          r.id.toLowerCase().includes(query.toLowerCase());
+        return matchesStatus && matchesQuery;
+      })
+      .toSorted((a, b) => (sortAsc ? a.amountCents - b.amountCents : b.amountCents - a.amountCents));
+  }, [records, query, statusFilter, sortAsc]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredAndSorted.length / pageSize));
+  const paginatedRows = filteredAndSorted.slice((page - 1) * pageSize, page * pageSize);
+
+    return (
+    <div className="rounded-2xl border border-border bg-card shadow-xs">
+      <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search customer, email, ID..."
+            aria-label="Search records"
+            className="h-10 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {(["all", "active", "pending", "failed"] as const).map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => {
+                setStatusFilter(status);
+                setPage(1);
+              }}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition ${
+                statusFilter === status ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/40 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <th className="px-4 py-3">Order ID</th>
+              <th className="px-4 py-3">Customer</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">
+                <button type="button" onClick={() => setSortAsc((prev) => !prev)} className="inline-flex items-center gap-1 hover:text-foreground">
+                  Amount <ArrowUpDown className="size-3.5" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-right">Date</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {paginatedRows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-12 text-center">
+                  <div className="mx-auto flex max-w-xs flex-col items-center">
+                    <Inbox className="size-8 text-muted-foreground" />
+                    <p className="mt-2 font-medium">No matching records found</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Try adjusting your search or filter criteria.</p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              paginatedRows.map((row) => (
+                <tr key={row.id} className="transition-colors hover:bg-muted/30">
+                  <td className="px-4 py-3.5 font-mono text-xs font-medium">{row.id}</td>
+                  <td className="px-4 py-3.5">
+                    <div className="font-medium text-foreground">{row.customer}</div>
+                    <div className="text-xs text-muted-foreground">{row.email}</div>
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[row.status]}`}>
+                      {row.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3.5 font-semibold tabular-nums">${(row.amountCents / 100).toFixed(2)}</td>
+                  <td className="px-4 py-3.5 text-right text-xs text-muted-foreground tabular-nums">{row.date}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-border px-4 py-3 text-xs text-muted-foreground">
+        <span>Showing {paginatedRows.length} of {filteredAndSorted.length} results</span>
+        <div className="flex items-center gap-1">
+          <button type="button" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} aria-label="Previous page" className="rounded-lg border border-border p-1.5 hover:bg-muted disabled:opacity-40">
+            <ChevronLeft className="size-4" />
+          </button>
+          <span className="px-2 font-medium text-foreground">Page {page} of {totalPages}</span>
+          <button type="button" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} aria-label="Next page" className="rounded-lg border border-border p-1.5 hover:bg-muted disabled:opacity-40">
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+==========================================================================
+# SOURCE 21: E-COMMERCE STOREFRONT, PRODUCT & CART UX ARCHITECTURE
+# Role: Principal E-Commerce UX Engineer & Conversion Specialist
+==========================================================================
+
+## 1. STOREFRONT, PRODUCT CARD & CHECKOUT RULES
+- **Product Card Anatomy:** Fixed `aspect-4/5` or `aspect-square` container with `object-cover`, single semantic badge (`New` or `-20% Sale`), top-right Wishlist toggle (`aria-label`), title (`line-clamp-1`), star rating, `tabular-nums` price, and Quick-Add button.
+- **Integer Cents Math:** ALWAYS calculate currency in integer cents (`priceInCents`) to avoid JavaScript floating-point bugs (`0.1 + 0.2 !== 0.3`).
+- **Slide-Over Cart Drawer:** Never reload the page on Add-to-Cart; open a slide-over drawer with a Free Shipping Progress Bar, quantity steppers, and a distraction-free SSL Checkout flow.
+
+## 2. SELF-CONTAINED CART ENGINE & SLIDE-OVER CART DRAWER
+import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight, Truck } from "lucide-react";
+
+export interface CartItem {
+  id: string;
+  name: string;
+  priceCents: number;
+  quantity: number;
+  image: string;
+  variant?: string;
+}
+
+export function formatCurrency(cents: number, currency = "USD", locale = "en-US"): string {
+  return new Intl.NumberFormat(locale, { style: "currency", currency }).format(cents / 100);
+}
+
+export function calculateCartTotals(items: CartItem[], taxRate = 0.08, freeShippingThresholdCents = 5000) {
+  const subtotalCents = items.reduce((sum, item) => sum + item.priceCents * item.quantity, 0);
+  const shippingCents = subtotalCents === 0 || subtotalCents >= freeShippingThresholdCents ? 0 : 599;
+  const taxCents = Math.round(subtotalCents * taxRate);
+  const totalCents = subtotalCents + shippingCents + taxCents;
+  const remainingForFreeShippingCents = Math.max(0, freeShippingThresholdCents - subtotalCents);
+  return { subtotalCents, shippingCents, taxCents, totalCents, remainingForFreeShippingCents };
+}
+
+interface CartDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  items: CartItem[];
+  onUpdateQty: (id: string, delta: number) => void;
+  onRemove: (id: string) => void;
+  onCheckout: () => void;
+}
+
+export function SlideOverCartDrawer({ isOpen, onClose, items, onUpdateQty, onRemove, onCheckout }: CartDrawerProps) {
+  if (!isOpen) return null;
+
+  const freeShippingThreshold = 5000;
+  const { subtotalCents, shippingCents, taxCents, totalCents, remainingForFreeShippingCents } =
+    calculateCartTotals(items, 0.08, freeShippingThreshold);
+  const progressPercent = Math.min(100, Math.round((subtotalCents / freeShippingThreshold) * 100));
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label="Shopping Cart">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-xs" onClick={onClose} />
+      <aside className="relative z-10 flex h-full w-full max-w-md flex-col border-l border-border bg-background shadow-2xl">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="size-5 text-primary" />
+            <h2 className="text-lg font-bold">Your Cart ({items.reduce((acc, i) => acc + i.quantity, 0)})</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close shopping cart" className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground">
+            <X className="size-5" />
+          </button>
+        </div>
+
+        <div className="border-b border-border bg-muted/40 px-6 py-3">
+          <div className="flex items-center gap-2 text-xs font-medium">
+            <Truck className="size-4 shrink-0 text-primary" />
+            {remainingForFreeShippingCents > 0 ? (
+              <span>Add <strong>{formatCurrency(remainingForFreeShippingCents)}</strong> more for <strong>FREE Shipping</strong></span>
+            ) : (
+              <span className="text-emerald-600 dark:text-emerald-400">You unlocked FREE Express Shipping!</span>
+            )}
+          </div>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: progressPercent + "%" }} />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {items.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <ShoppingBag className="size-12 text-muted-foreground/50" />
+              <p className="mt-3 text-base font-semibold">Your cart is empty</p>
+              <p className="mt-1 text-sm text-muted-foreground">Explore our catalog and add items to get started.</p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {items.map((item) => (
+                <li key={item.id} className="flex gap-4 py-4">
+                  <img src={item.image} alt={item.name} width={72} height={72} className="size-18 shrink-0 rounded-xl border border-border object-cover" />
+                  <div className="flex flex-1 flex-col justify-between">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="text-sm font-semibold leading-tight">{item.name}</h3>
+                        {item.variant && <p className="mt-0.5 text-xs text-muted-foreground">{item.variant}</p>}
+                      </div>
+                      <button type="button" onClick={() => onRemove(item.id)} aria-label={"Remove " + item.name} className="text-muted-foreground hover:text-destructive">
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="inline-flex items-center rounded-lg border border-border">
+                        <button type="button" onClick={() => onUpdateQty(item.id, -1)} aria-label="Decrease quantity" className="p-1.5 hover:bg-muted">
+                          <Minus className="size-3" />
+                        </button>
+                        <span className="px-2.5 text-xs font-semibold tabular-nums">{item.quantity}</span>
+                        <button type="button" onClick={() => onUpdateQty(item.id, 1)} aria-label="Increase quantity" className="p-1.5 hover:bg-muted">
+                          <Plus className="size-3" />
+                        </button>
+                      </div>
+                      <span className="text-sm font-bold tabular-nums">{formatCurrency(item.priceCents * item.quantity)}</span>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {items.length > 0 && (
+          <div className="border-t border-border bg-card p-6">
+            <div className="space-y-1.5 text-sm">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal</span>
+                <span className="tabular-nums">{formatCurrency(subtotalCents)}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Shipping</span>
+                <span className="tabular-nums">{shippingCents === 0 ? "Free" : formatCurrency(shippingCents)}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Estimated Tax</span>
+                <span className="tabular-nums">{formatCurrency(taxCents)}</span>
+              </div>
+              <div className="flex justify-between border-t border-border pt-2 text-base font-bold">
+                <span>Total</span>
+                <span className="tabular-nums">{formatCurrency(totalCents)}</span>
+              </div>
+            </div>
+            <button type="button" onClick={onCheckout} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">
+              Proceed to Checkout <ArrowRight className="size-4" />
+            </button>
+          </div>
+        )}
+      </aside>
+    </div>
+  );
+}
+
+==========================================================================
+
+
+SOURCE 46: INTERACTIVE WEB TOOLS, CALCULATORS & SIMULATOR BUILDER SKILL
+
+
+Role: Principal Interactive Tool & FinTech/Utility Engineer
+
+==========================================================================
+
+1. CORE UX ARCHITECTURE FOR WEB TOOLS & CALCULATORS
+
+• Instant Real-Time Reactivity: Update all outputs, breakdowns, and charts instantaneously as the user drags a slider or types a number—never force a "Calculate" button click.
+• Dual Input Control: Pair every range slider (<input type="range">) with a synchronized numeric input box (<input type="number">), clamping out-of-bounds values (Math.min(max, Math.max(min, val))) so NaN or Infinity never appears on screen.
+• 2-Column Split Cockpit Layout: Left Panel (grouped inputs with unit labels) + Right Panel (highlighted tabular-nums primary result, visual SVG chart breakdown, and collapsible schedule table).
+• URL State & Export: Sync parameters to URL query strings (?amount=500000&rate=8.5) and provide 1-click "Copy Summary" or "Download CSV" actions.
+
+2. PRECISION FINANCIAL & LOAN AMORTIZATION ENGINE (ZERO NAN BUGS)
+
+export interface LoanResult {
+monthlyEmi: number;
+totalInterest: number;
+totalPayment: number;
+schedule: Array<{
+month: number;
+principalPaid: number;
+interestPaid: number;
+remainingBalance: number;
+}>;
+}
+export function calculateLoanDetails(principal: number, annualRatePercent: number, tenureYears: number): LoanResult {
+const safePrincipal = Math.max(0, Number.isFinite(principal) ? principal : 0);
+const safeYears = Math.max(1, Number.isFinite(tenureYears) ? tenureYears : 1);
+const safeRate = Math.max(0, Number.isFinite(annualRatePercent) ? annualRatePercent : 0);
+const totalMonths = Math.round(safeYears * 12);
+const monthlyRate = safeRate / 12 / 100;
+let monthlyEmi = 0;
+if (monthlyRate === 0) {
+monthlyEmi = safePrincipal / totalMonths;
+} else {
+const factor = Math.pow(1 + monthlyRate, totalMonths);
+monthlyEmi = (safePrincipal * monthlyRate * factor) / (factor - 1);
+}
+let balance = safePrincipal;
+const schedule: LoanResult["schedule"] = [];
+for (let month = 1; month <= totalMonths; month++) {
+const interestPaid = balance * monthlyRate;
+const principalPaid = Math.min(balance, monthlyEmi - interestPaid);
+balance = Math.max(0, balance - principalPaid);
+schedule.push({
+month,
+principalPaid: Math.round(principalPaid),
+interestPaid: Math.round(interestPaid),
+remainingBalance: Math.round(balance),
+});
+}
+const totalPayment = monthlyEmi * totalMonths;
+const totalInterest = Math.max(0, totalPayment - safePrincipal);
+return {
+monthlyEmi: Math.round(monthlyEmi),
+totalInterest: Math.round(totalInterest),
+totalPayment: Math.round(totalPayment),
+schedule,
+};
+}
