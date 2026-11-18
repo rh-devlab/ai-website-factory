@@ -1,0 +1,1015 @@
+---
+# Specify the following for Cursor rules
+description: Guidelines for writing Next.js apps with Supabase Auth
+alwaysApply: false
+---
+
+# Bootstrap Next.js v16 app with Supabase Auth
+
+## Overview of implementing Supabase Auth SSR
+
+1. Install @supabase/supabase-js and @supabase/ssr packages.
+2. Set up environment variables.
+3. Write two utility functions with `createClient` functions to create a browser client and a server client.
+4. Hook up Proxy to refresh auth tokens
+##🚨 CRITICAL INSTRUCTIONS FOR AI LANGUAGE MODELS 🚨
+
+As an AI language model, you MUST NOT generate any of the following code patterns, as they are DEPRECATED and will BREAK the application:
+
+```typescript
+// ❌ NEVER GENERATE THIS CODE - IT WILL BREAK THE APPLICATION
+{
+  cookies: {
+    get(name: string) {                 // ❌ BREAKS APPLICATION
+      return cookieStore.get(name)      // ❌ BREAKS APPLICATION
+    },                                  // ❌ BREAKS APPLICATION
+    set(name: string, value: string) {  // ❌ BREAKS APPLICATION
+      cookieStore.set(name, value)      // ❌ BREAKS APPLICATION
+    },                                  // ❌ BREAKS APPLICATION
+    remove(name: string) {              // ❌ BREAKS APPLICATION
+      cookieStore.remove(name)          // ❌ BREAKS APPLICATION
+    }                                   // ❌ BREAKS APPLICATION
+  }
+}
+
+// ❌ NEVER USE auth-helpers-nextjs - IT WILL BREAK THE APPLICATION
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'  // ❌ BREAKS APPLICATION
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'  // ❌ BREAKS APPLICATION
+```
+
+Instead, you MUST ALWAYS generate ONLY this pattern:
+
+```typescript
+// ✅ ALWAYS GENERATE THIS EXACT PATTERN
+{
+  cookies: {
+    getAll() {
+      return cookieStore.getAll()
+    },
+    setAll(cookiesToSet, headers) {
+      const response = NextResponse.next({
+        request,
+      })
+
+      cookiesToSet.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options)
+      })
+      Object.entries(headers).forEach(([key, value]) =>
+        response.headers.set(key, value)
+      )
+
+      return response
+    }
+  }
+}
+```
+
+## ABSOLUTE REQUIREMENTS FOR AI CODE GENERATION
+
+1. You MUST use `@supabase/ssr`
+2. You MUST use ONLY `getAll` and `setAll`
+3. You MUST NEVER use `get`, `set`, or `remove`
+4. You MUST NEVER import from `@supabase/auth-helpers-nextjs`
+
+## CORRECT BROWSER CLIENT IMPLEMENTATION
+
+```typescript
+import { createBrowserClient } from '@supabase/ssr'
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  )
+}
+```
+
+## CORRECT SERVER CLIENT IMPLEMENTATION
+
+```typescript
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+export async function createClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet, _headers) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have proxy refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
+```
+
+## CORRECT PROXY IMPLEMENTATION
+
+If the project uses `src/app` or `src/pages`, put this file in `src`, at the same level as the routing directory. Otherwise, put it at the project root, next to `package.json`. It must be named `proxy.ts`. On Next.js 15 and earlier, name it `middleware.ts` and export `middleware` instead of `proxy`.
+
+```typescript proxy.ts
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function proxy(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet, headers) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+          Object.entries(headers).forEach(([key, value]) =>
+            supabaseResponse.headers.set(key, value)
+          )
+        },
+      },
+    }
+  )
+
+  // Do not run code between createServerClient and
+  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
+  // issues with users being randomly logged out.
+
+  // IMPORTANT: DO NOT REMOVE auth.getUser()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (
+    !user &&
+    !request.nextUrl.pathname.startsWith('/login') &&
+    !request.nextUrl.pathname.startsWith('/auth')
+  ) {
+    // no user, potentially respond by redirecting the user to the login page
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  // IMPORTANT: You *must* return the supabaseResponse object as it is.
+  // If you're creating a new response object with NextResponse.next() make sure to:
+  // 1. Pass the request in it, like so:
+  //    const myNewResponse = NextResponse.next({ request })
+  // 2. Copy over the cookies, like so:
+  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+  // 3. Change the myNewResponse object to fit your needs, but avoid changing
+  //    the cookies!
+  // 4. Finally:
+  //    return myNewResponse
+  // If this is not done, you may be causing the browser and server to go out
+  // of sync and terminate the user's session prematurely!
+
+  return supabaseResponse
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}
+```
+
+## AI MODEL VERIFICATION STEPS
+
+Before generating any code, you MUST verify:
+
+1. Are you using ONLY `getAll` and `setAll`? If not, STOP and FIX.
+2. Are you importing from `@supabase/ssr`? If not, STOP and FIX.
+3. Do you see ANY instance of `get`, `set`, or `remove`? If yes, STOP and FIX.
+4. Are you importing from `auth-helpers-nextjs`? If yes, STOP and FIX.
+
+## CONSEQUENCES OF INCORRECT IMPLEMENTATION
+
+If you generate code using:
+
+- Individual cookie methods (`get`/`set`/`remove`)
+- `auth-helpers-nextjs` package
+
+The implementation will:
+
+1. Break in production
+2. Fail to maintain session state
+3. Cause authentication loops
+4. Result in security vulnerabilities
+
+## AI MODEL RESPONSE TEMPLATE
+
+When asked about Supabase Auth SSR implementation, you MUST:
+
+1. ONLY use code from this guide
+2. NEVER suggest deprecated approaches
+3. ALWAYS use the exact cookie handling shown above
+4. VERIFY your response against the patterns shown here
+
+Remember: There are NO EXCEPTIONS to these rules.
+
+---
+# Specify the following for Cursor rules
+description: Guidelines for writing Postgres Row Level Security policies
+alwaysApply: false
+---
+
+# Database: Create RLS policies
+
+You're a Supabase Postgres expert in writing row level security policies. Your purpose is to generate a policy with the constraints given by the user. You should first retrieve schema information to write policies for, usually the 'public' schema.
+
+The output should use the following instructions:
+
+- The generated SQL must be valid SQL.
+- You can use only CREATE POLICY or ALTER POLICY queries, no other queries are allowed.
+- Always use double apostrophe in SQL strings (eg. 'Night''s watch')
+- You can add short explanations to your messages.
+- The result should be a valid markdown. The SQL code should be wrapped in ``` (including sql language tag).
+- Always use "auth.uid()" instead of "current_user".
+- SELECT policies should always have USING but not WITH CHECK
+- INSERT policies should always have WITH CHECK but not USING
+- UPDATE policies should always have WITH CHECK and most often have USING
+- DELETE policies should always have USING but not WITH CHECK
+- Don't use `FOR ALL`. Instead separate into 4 separate policies for select, insert, update, and delete.
+- The policy name should be short but detailed text explaining the policy, enclosed in double quotes.
+- Always put explanations as separate text. Never use inline SQL comments.
+- If the user asks for something that's not related to SQL policies, explain to the user
+  that you can only help with policies.
+- Discourage `RESTRICTIVE` policies and encourage `PERMISSIVE` policies, and explain why.
+
+The output should look like this:
+
+```sql
+CREATE POLICY "My descriptive policy." ON books
+  FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = author_id);
+```
+
+Since you are running in a Supabase environment, take note of these Supabase-specific additions below.
+
+## Authenticated and unauthenticated roles
+
+Supabase maps every request to one of the roles:
+
+- `anon`: an unauthenticated request (the user is not logged in)
+- `authenticated`: an authenticated request (the user is logged in)
+
+These are actually [Postgres Roles](/docs/guides/database/postgres/roles). You can use these roles within your Policies using the `TO` clause:
+
+```sql
+create policy "Profiles are viewable by everyone"
+on profiles
+for select
+to authenticated, anon
+using ( true );
+
+-- OR
+
+create policy "Public profiles are viewable only by authenticated users"
+on profiles
+for select
+to authenticated
+using ( true );
+```
+
+Note that `for ...` must be added after the table but before the roles. `to ...` must be added after `for ...`:
+
+### Incorrect
+
+```sql
+create policy "Public profiles are viewable only by authenticated users"
+on profiles
+to authenticated
+for select
+using ( true );
+```
+
+### Correct
+
+```sql
+create policy "Public profiles are viewable only by authenticated users"
+on profiles
+for select
+to authenticated
+using ( true );
+```
+
+## Multiple operations
+
+PostgreSQL policies do not support specifying multiple operations in a single FOR clause. You need to create separate policies for each operation.
+
+### Incorrect
+
+```sql
+create policy "Profiles can be created and deleted by any user"
+on profiles
+for insert, delete -- cannot create a policy on multiple operators
+to authenticated
+with check ( true )
+using ( true );
+```
+
+### Correct
+
+```sql
+create policy "Profiles can be created by any user"
+on profiles
+for insert
+to authenticated
+with check ( true );
+
+create policy "Profiles can be deleted by any user"
+on profiles
+for delete
+to authenticated
+using ( true );
+```
+
+## Helper functions
+
+Supabase provides some helper functions that make it easier to write Policies.
+
+### `auth.uid()`
+
+Returns the ID of the user making the request.
+
+### `auth.jwt()`
+
+Returns the JWT of the user making the request. Anything that you store in the user's `raw_app_meta_data` column or the `raw_user_meta_data` column will be accessible using this function. It's important to know the distinction between these two:
+
+- `raw_user_meta_data` - can be updated by the authenticated user using the `supabase.auth.update()` function. It is not a good place to store authorization data.
+- `raw_app_meta_data` - cannot be updated by the user, so it's a good place to store authorization data.
+
+The `auth.jwt()` function is extremely versatile. For example, if you store some team data inside `app_metadata`, you can use it to determine whether a particular user belongs to a team. For example, if this was an array of IDs:
+
+```sql
+create policy "User is in team"
+on my_table
+to authenticated
+using ( team_id in (select auth.jwt() -> 'app_metadata' -> 'teams'));
+```
+
+### MFA
+
+The `auth.jwt()` function can be used to check for [Multi-Factor Authentication](/docs/guides/auth/auth-mfa#enforce-rules-for-mfa-logins). For example, you could restrict a user from updating their profile unless they have at least 2 levels of authentication (Assurance Level 2):
+
+```sql
+create policy "Restrict updates."
+on profiles
+as restrictive
+for update
+to authenticated using (
+  (select auth.jwt()->>'aal') = 'aal2'
+);
+```
+
+## RLS performance recommendations
+
+Every authorization system has an impact on performance. While row level security is powerful, the performance impact is important to keep in mind. This is especially true for queries that scan every row in a table - like many `select` operations, including those using limit, offset, and ordering.
+
+Based on a series of [tests](https://github.com/GaryAustin1/RLS-Performance), we have a few recommendations for RLS:
+
+### Add indexes
+
+Make sure you've added [indexes](/docs/guides/database/postgres/indexes) on any columns used within the Policies which are not already indexed (or primary keys). For a Policy like this:
+
+```sql
+create policy "Users can access their own records" on test_table
+to authenticated
+using ( (select auth.uid()) = user_id );
+```
+
+You can add an index like:
+
+```sql
+create index userid
+on test_table
+using btree (user_id);
+```
+
+### Call functions with `select`
+
+You can use `select` statement to improve policies that use functions. For example, instead of this:
+
+```sql
+create policy "Users can access their own records" on test_table
+to authenticated
+using ( auth.uid() = user_id );
+```
+
+You can do:
+
+```sql
+create policy "Users can access their own records" on test_table
+to authenticated
+using ( (select auth.uid()) = user_id );
+```
+
+This method works well for JWT functions like `auth.uid()` and `auth.jwt()` as well as `security definer` Functions. Wrapping the function causes an `initPlan` to be run by the Postgres optimizer, which allows it to "cache" the results per-statement, rather than calling the function on each row.
+
+Caution: You can only use this technique if the results of the query or function do not change based on the row data.
+
+### Minimize joins
+
+You can often rewrite your Policies to avoid joins between the source and the target table. Instead, try to organize your policy to fetch all the relevant data from the target table into an array or set, then you can use an `IN` or `ANY` operation in your filter.
+
+For example, this is an example of a slow policy which joins the source `test_table` to the target `team_user`:
+
+```sql
+create policy "Users can access records belonging to their teams" on test_table
+to authenticated
+using (
+  (select auth.uid()) in (
+    select user_id
+    from team_user
+    where team_user.team_id = team_id -- joins to the source "test_table.team_id"
+  )
+);
+```
+
+We can rewrite this to avoid this join, and instead select the filter criteria into a set:
+
+```sql
+create policy "Users can access records belonging to their teams" on test_table
+to authenticated
+using (
+  team_id in (
+    select team_id
+    from team_user
+    where user_id = (select auth.uid()) -- no join
+  )
+);
+```
+
+### Specify roles in your policies
+
+Always use the Role of inside your policies, specified by the `TO` operator. For example, instead of this query:
+
+```sql
+create policy "Users can access their own records" on rls_test
+using ( auth.uid() = user_id );
+```
+
+Use:
+
+```sql
+create policy "Users can access their own records" on rls_test
+to authenticated
+using ( (select auth.uid()) = user_id );
+```
+
+This prevents the policy `( (select auth.uid()) = user_id )` from running for any `anon` users, since the execution stops at the `to authenticated` step.
+
+---
+# Specify the following for Cursor rules
+description: Guidelines for writing Postgres migrations
+alwaysApply: false
+---
+
+# Database: Create migration
+
+You are a Postgres Expert who loves creating secure database schemas.
+
+This project uses the migrations provided by the Supabase CLI.
+
+## Creating a migration file
+
+Given the context of the user's message, create a database migration file inside the folder `supabase/migrations/`.
+
+The file MUST following this naming convention:
+
+The file MUST be named in the format `YYYYMMDDHHmmss_short_description.sql` with proper casing for months, minutes, and seconds in UTC time:
+
+1. `YYYY` - Four digits for the year (e.g., `2024`).
+2. `MM` - Two digits for the month (01 to 12).
+3. `DD` - Two digits for the day of the month (01 to 31).
+4. `HH` - Two digits for the hour in 24-hour format (00 to 23).
+5. `mm` - Two digits for the minute (00 to 59).
+6. `ss` - Two digits for the second (00 to 59).
+7. Add an appropriate description for the migration.
+
+For example:
+
+```
+20240906123045_create_profiles.sql
+```
+
+## SQL Guidelines
+
+Write Postgres-compatible SQL code for Supabase migration files that:
+
+- Includes a header comment with metadata about the migration, such as the purpose, affected tables/columns, and any special considerations.
+- Includes thorough comments explaining the purpose and expected behavior of each migration step.
+- Write all SQL in lowercase.
+- Add copious comments for any destructive SQL commands, including truncating, dropping, or column alterations.
+- When creating a new table, you MUST enable Row Level Security (RLS) even if the table is intended for public access.
+- When creating RLS Policies
+  - Ensure the policies cover all relevant access scenarios (e.g. select, insert, update, delete) based on the table's purpose and data sensitivity.
+  - If the table is intended for public access the policy can simply return `true`.
+  - RLS Policies should be granular: one policy for `select`, one for `insert` etc) and for each supabase role (`anon` and `authenticated`). DO NOT combine Policies even if the functionality is the same for both roles.
+  - Include comments explaining the rationale and intended behavior of each security policy
+
+The generated SQL code should be production-ready, well-documented, and aligned with Supabase's best practices.
+
+---
+# Specify the following for Cursor rules
+description: Guidelines for writing Supabase database functions
+alwaysApply: false
+---
+
+# Database: Create functions
+
+You're a Supabase Postgres expert in writing database functions. Generate **high-quality PostgreSQL functions** that adhere to the following best practices:
+
+## General Guidelines
+
+1. **Default to `SECURITY INVOKER`:**
+   - Functions should run with the permissions of the user invoking the function, ensuring safer access control.
+   - Use `SECURITY DEFINER` only when explicitly required and explain the rationale.
+
+2. **Set the `search_path` Configuration Parameter:**
+   - Always set `search_path` to an empty string (`set search_path = '';`).
+   - This avoids unexpected behavior and security risks caused by resolving object references in untrusted or unintended schemas.
+   - Use fully qualified names (e.g., `schema_name.table_name`) for all database objects referenced within the function.
+
+3. **Adhere to SQL Standards and Validation:**
+   - Ensure all queries within the function are valid PostgreSQL SQL queries and compatible with the specified context (ie. Supabase).
+
+## Best Practices
+
+1. **Minimize Side Effects:**
+   - Prefer functions that return results over those that modify data unless they serve a specific purpose (e.g., triggers).
+
+2. **Use Explicit Typing:**
+   - Clearly specify input and output types, avoiding ambiguous or loosely typed parameters.
+
+3. **Default to Immutable or Stable Functions:**
+   - Where possible, declare functions as `IMMUTABLE` or `STABLE` to allow better optimization by PostgreSQL. Use `VOLATILE` only if the function modifies data or has side effects.
+
+4. **Triggers (if Applicable):**
+   - If the function is used as a trigger, include a valid `CREATE TRIGGER` statement that attaches the function to the desired table and event (e.g., `BEFORE INSERT`).
+
+## Example Templates
+
+### Simple Function with `SECURITY INVOKER`
+
+```sql
+create or replace function my_schema.hello_world()
+returns text
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  return 'hello world';
+end;
+$$;
+```
+
+### Function with Parameters and Fully Qualified Object Names
+
+```sql
+create or replace function public.calculate_total_price(order_id bigint)
+returns numeric
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  total numeric;
+begin
+  select sum(price * quantity)
+  into total
+  from public.order_items
+  where order_id = calculate_total_price.order_id;
+
+  return total;
+end;
+$$;
+```
+
+### Function as a Trigger
+
+```sql
+create or replace function my_schema.update_updated_at()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  -- Update the "updated_at" column on row modification
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+create trigger update_updated_at_trigger
+before update on my_schema.my_table
+for each row
+execute function my_schema.update_updated_at();
+```
+
+### Function with Error Handling
+
+```sql
+create or replace function my_schema.safe_divide(numerator numeric, denominator numeric)
+returns numeric
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if denominator = 0 then
+    raise exception 'Division by zero is not allowed';
+  end if;
+
+  return numerator / denominator;
+end;
+$$;
+```
+
+### Immutable Function for Better Optimization
+
+```sql
+create or replace function my_schema.full_name(first_name text, last_name text)
+returns text
+language sql
+security invoker
+set search_path = ''
+immutable
+as $$
+  select first_name || ' ' || last_name;
+$$;
+```
+
+---
+description: "Cursor rules for TypeScript development with Next.js and Supabase integration."
+globs: **/*
+alwaysApply: false
+---
+You are an expert in TypeScript, Node.js, Next.js App Router, React, Shadcn UI, Radix UI, Supabase, Tailwind, and Vercel AI SDK.
+
+**Code Style and Structure**
+
+- Write concise, technical TypeScript code with accurate examples.
+- Use functional and declarative programming patterns; avoid classes.
+- Prefer iteration and modularization over code duplication.
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
+- Structure files: exported component, subcomponents, helpers, static content, types.
+
+**Naming Conventions**
+
+- Use lowercase with dashes for directories (e.g., components/auth-wizard).
+- Favor named exports for components.
+
+**TypeScript Usage**
+
+- Use TypeScript for all code; prefer interfaces over types.
+- Avoid enums; use const objects or as const assertions instead.
+- Use functional components with TypeScript interfaces.
+
+**Syntax and Formatting**
+
+- Use arrow functions for components and handlers.
+- Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
+- Use declarative JSX.
+
+**UI and Styling**
+
+- Use Shadcn UI, Radix, and Tailwind for components and styling.
+- Implement responsive design with Tailwind CSS; use a mobile-first approach.
+
+**Performance Optimization**
+
+- Minimize 'use client', 'useEffect', and 'useState'; favor React Server Components (RSC).
+- Wrap client components in Suspense with fallback.
+- Use dynamic loading for non-critical components.
+- Optimize images: use Next.js Image component, include size data, implement lazy loading.
+
+**Database Querying & Data Model Creation**
+
+- Use Supabase SDK for data fetching and querying.
+- For data model creation, use Supabase's schema builder.
+
+**Key Conventions**
+
+- Use 'nuqs' for URL search parameter state management.
+- Optimize Web Vitals (LCP, CLS, FID).
+- Limit 'use client':
+  - Favor server components and Next.js SSR.
+  - Use only for Web API access in small components.
+  - Avoid for data fetching or state management.
+
+**Vercel AI SDK Integration**
+
+- Use Vercel AI SDK for building AI-powered features.
+- Implement AI SDK Core for generating text, structured objects, and tool calls with LLMs.
+- Utilize AI SDK UI hooks for building chat interfaces.
+- Leverage AI SDK RSC for streaming generative user interfaces with React Server Components.
+
+**Data Fetching and API Routes**
+
+- Use Next.js App Router conventions for data fetching and API routes.
+- Implement efficient caching and revalidation strategies using Next.js built-in features.
+- Use route handlers (route.ts) for API routes in the App Router.
+
+**Error Handling and Loading States**
+
+- Implement error boundaries and error.tsx files for error handling.
+- Use loading.tsx files for managing loading states.
+
+**SEO and Metadata**
+
+- Use Next.js 14's metadata API for SEO optimization.
+
+**Follow Next.js docs for Data Fetching, Rendering, and Routing.**
+
+---
+description: "Database best practices focusing on Prisma and Supabase integration"
+globs: prisma/**/*, src/db/**/*, **/*.prisma, supabase/**/*
+alwaysApply: false
+---
+# Database Best Practices
+
+## Prisma Setup
+- Use proper schema design
+- Implement proper migrations
+- Use proper relation definitions
+- Configure proper connection
+- Implement proper seeding
+- Use proper client setup
+
+## Prisma Models
+- Use proper model naming
+- Implement proper relations
+- Use proper field types
+- Define proper indexes
+- Implement proper constraints
+- Use proper enums
+
+## Prisma Queries
+- Use proper query optimization
+- Implement proper filtering
+- Use proper relations loading
+- Handle transactions properly
+- Implement proper pagination
+- Use proper aggregations
+
+## Supabase Setup
+- Configure proper project setup
+- Implement proper authentication
+- Use proper database setup
+- Configure proper storage
+- Implement proper policies
+- Use proper client setup
+
+## Supabase Security
+- Implement proper RLS policies
+- Use proper authentication
+- Configure proper permissions
+- Handle sensitive data properly
+- Implement proper backups
+- Use proper encryption
+
+## Supabase Queries
+- Use proper query optimization
+- Implement proper filtering
+- Use proper joins
+- Handle real-time properly
+- Implement proper pagination
+- Use proper functions
+
+## Database Design
+- Use proper normalization
+- Implement proper indexing
+- Use proper constraints
+- Define proper relations
+- Implement proper cascades
+- Use proper data types
+
+## Performance
+- Use proper connection pooling
+- Implement proper caching
+- Use proper query optimization
+- Handle N+1 queries properly
+- Implement proper batching
+- Monitor performance metrics
+
+## Security
+- Use proper authentication
+- Implement proper authorization
+- Handle sensitive data properly
+- Use proper encryption
+- Implement proper backups
+- Monitor security issues
+
+## Best Practices
+- Follow database conventions
+- Use proper migrations
+- Implement proper versioning
+- Handle errors properly
+- Document schema properly
+- Monitor database health
+
+---
+description: "Cursor rules for Tailwind development with React and Firebase integration."
+globs: **/*
+alwaysApply: false
+---
+Here are some best practices and rules to follow for creating a high-quality, mobile-first web app with excellent UI/UX using Tailwind, React, and Firebase:
+
+Mobile-First Design:
+Always design and implement for mobile screens first, then scale up to larger screens.
+Use Tailwind's responsive prefixes (sm:, md:, lg:, xl:) to adjust layouts for different screen sizes.
+
+Consistent Design System:
+Create a design system with consistent colors, typography, spacing, and component styles.
+Utilize Tailwind's configuration file (tailwind.config.js) to define your custom design tokens.
+
+Performance Optimization:
+Use React.lazy() and Suspense for code-splitting and lazy-loading components.
+Implement virtualization for long lists using libraries like react-window.
+Optimize images and use next/image for automatic image optimization in Next.js.
+
+Responsive Typography:
+Use Tailwind's text utilities with responsive prefixes to adjust font sizes across different screens.
+Consider using a fluid typography system for seamless scaling.
+
+Accessibility:
+Ensure proper color contrast ratios using Tailwind's text-* and bg-* classes.
+Use semantic HTML elements and ARIA attributes where necessary.
+Implement keyboard navigation support.
+
+Touch-Friendly UI:
+Make interactive elements (buttons, links) at least 44x44 pixels for easy tapping.
+Implement touch gestures for common actions (swipe, pinch-to-zoom) where appropriate.
+
+USE THE IMAGES IN THE MOCKUPS FOLDER AS EXAMPLE OF HOW TO STYLE THE APP AND CREATE THE LAYOUT
+
+WHEN CREATING A FILE DON'T CONFLICT IT WITH .TSX AND .JSX FILES
+
+Firebase Best Practices:
+Implement proper security rules in Firebase.
+Use Firebase SDK's offline persistence for better performance and offline support.
+Optimize queries to minimize read/write operations.
+
+Error Handling and Feedback:
+Implement proper error boundaries in React.
+Provide clear feedback for user actions (loading states, success/error messages).
+
+Animation and Transitions:
+Use subtle animations to enhance UX (e.g., page transitions, micro-interactions).
+Utilize Tailwind's transition utilities or consider libraries like Framer Motion.
+
+Form Handling:
+Use libraries like Formik or react-hook-form for efficient form management.
+Implement proper form validation with clear error messages.
+
+Code Organization:
+Follow a consistent folder structure (e.g., components, hooks, pages, services).
+Use custom hooks to encapsulate and reuse logic.
+
+Native-like Features:
+Implement pull-to-refresh for content updates.
+Use smooth scrolling and momentum scrolling.
+Consider using libraries like react-spring for physics-based animations.
+
+
+==========================================================================
+# SOURCE 27: FIREBASE WEB SDK V11 MODULAR ARCHITECTURE & SECURITY RULES
+# Role: Principal Firebase & Real-Time App Architect
+==========================================================================
+
+## 1. MODULAR SDK V11 SINGLETON INITIALIZATION (src/lib/firebase.ts)
+NEVER use deprecated compat imports (`firebase/compat/*`). Always use tree-shakeable Modular SDK v11 with singleton initialization so Next.js HMR never initializes duplicate apps:
+
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+
+const firebaseConfig = {
+  apiKey: process.env["NEXT_PUBLIC_FIREBASE_API_KEY"],
+  authDomain: process.env["NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"],
+  projectId: process.env["NEXT_PUBLIC_FIREBASE_PROJECT_ID"],
+  storageBucket: process.env["NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"],
+  messagingSenderId: process.env["NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"],
+  appId: process.env["NEXT_PUBLIC_FIREBASE_APP_ID"],
+};
+
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+
+## 2. FIRESTORE QUERY & SECURITY RULES STANDARDS
+- **Always Bound Queries:** Never fetch unbounded collections; always combine `where()`, `orderBy()`, and `limit(25)`.
+- **Firestore Security Rules (`firestore.rules`):** Never leave `allow read, write: if true;` in production. Always enforce ownership:
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /users/{userId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /orders/{orderId} {
+        allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      }
+    }
+  }
+
+==========================================================================
+# SOURCE 28: PRISMA ORM & DRIZZLE ORM PRODUCTION STANDARDS
+# Role: Principal TypeScript Database & ORM Architect
+==========================================================================
+
+## 1. PRISMA SINGLETON CLIENT & SCHEMA RULES (prisma/schema.prisma)
+- **Global Singleton (`src/lib/prisma.ts`):** Always attach `PrismaClient` to `globalThis` in development to prevent connection pool exhaustion during Next.js hot reloads:
+
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env["NODE_ENV"] === "development" ? ["error", "warn"] : ["error"],
+  });
+
+if (process.env["NODE_ENV"] !== "production") {
+  globalForPrisma.prisma = prisma;
+}
+
+- **Prisma Query Best Practices:**
+  - Always use `select` or `include` explicitly—never over-fetch sensitive fields like `passwordHash`.
+  - Use `prisma.$transaction([...])` for multi-table atomic writes (e.g., creating an order and decrementing stock).
+  - Always index foreign keys (`@@index([userId])`) because PostgreSQL does not auto-index foreign key columns.
+
+## 2. DRIZZLE ORM EDGE-READY SCHEMA & QUERY PATTERN (src/db/schema.ts)
+When using Drizzle ORM with PostgreSQL (`drizzle-orm/pg-core`):
+
+import { pgTable, uuid, text, integer, timestamp, index } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  fullName: text("full_name").notNull(),
+  role: text("role").$type<"admin" | "member">().default("member").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const orders = pgTable(
+  "orders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    totalCents: integer("total_cents").notNull(),
+    status: text("status").$type<"pending" | "paid" | "cancelled">().default("pending").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("orders_user_id_idx").on(table.userId)]
+);
+
+==========================================================================
+# SOURCE 29: POSTGRESQL SCHEMA DESIGN & MIGRATION RULES
+# Role: Principal Database Architect
+==========================================================================
+- **Naming Convention:** Use `lower_snake_case` for all tables and columns; use plural table names (`users`, `orders`, `products`) or singular consistently across the schema.
+- **Primary Keys & Timestamps:** Use `UUID` (`gen_random_uuid()`) for public-facing IDs to prevent enumeration attacks, and always include `created_at TIMESTAMPTZ DEFAULT now()` and `updated_at TIMESTAMPTZ`.
+- **Money & Precision:** NEVER store currency in `FLOAT` or `REAL`. Always use `INTEGER` (`price_cents`) or `NUMERIC(12, 2)`.
+- **Zero-Downtime Migrations:** Never rename or drop columns directly in live production; add the new column, backfill data, update app code, and drop the old column in a later release.
+
+

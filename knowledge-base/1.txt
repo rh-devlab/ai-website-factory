@@ -1,0 +1,632 @@
+1
+
+# SOURCE 01: MODERN HTML5 ARCHITECTURE & SEMANTIC RULES
+# Role: Strict Structural Rules for AI Website Factory
+
+## 1. CORE DOCUMENT SKELETON
+Every HTML5 document MUST start with `<!DOCTYPE html>`, include `<html lang="en">` (or appropriate language code), and contain proper `<head>` metadata in exact order:
+
+```html
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Title | Brand Name</title>
+  <meta name="description" content="Concise, keyword-rich description under 160 characters." />
+  <meta property="og:title" content="Page Title" />
+  <meta property="og:description" content="Social media preview description." />
+  <meta property="og:type" content="website" />
+</head>
+<body>
+  <a href="#main-content" class="sr-only focus:not-sr-only">Skip to main content</a>
+  <header>...</header>
+  <main id="main-content">...</main>
+  <footer>...</footer>
+</body>
+</html>
+
+
+
+2. STRICT SEMANTIC HIERARCHY (NO DIV-SOUP)
+
+ * NEVER use <div> or <span> when a native semantic HTML5 tag exists.
+ * <header>: Top navigation bar, brand logo, and primary CTA. Do not nest inside
+   <footer> or <address>.
+ * <nav>: Strictly for major navigation blocks (must include aria-label="Main
+   Navigation" and wrap links in <ul><li><a href="...">).
+ * <main>: Wraps the unique central content of the page (only ONE <main> per
+   page). Never nest inside <article>, <aside>, <footer>, <header>, or <nav>.
+ * <section>: Thematic grouping of content, ALWAYS accompanied by a heading
+   (<h2> or <h3>). If no heading fits, use <div>.
+ * <article>: Self-contained, reusable content (blog cards, product cards,
+   testimonials).
+ * <aside>: Sidebars, callout boxes, or tangential content.
+ * <footer>: Copyright, sitemap links, social links, and <address> contact info.
+ * <figure> & <figcaption>: Use for images, diagrams, or code blocks requiring
+   captions.
+ * <time datetime="YYYY-MM-DD">: Use for all machine-readable dates and
+   timestamps.
+
+
+3. HEADING HIERARCHY & SEO RULES
+
+ * Exactly ONE <h1> tag per page (used for the main Hero headline).
+ * Strict sequential order (<h1> -> <h2> -> <h3> -> <h4>). Never skip heading
+   levels.
+ * Use <strong> for important text and <em> for stressed emphasis (never <b> or
+   <i> for styling).
+ * Use descriptive anchor text (<a href="...">View Pricing</a> instead of Click
+   here).
+ * External links (target="_blank") MUST include rel="noopener noreferrer" for
+   security.
+
+
+4. ACCESSIBILITY (WCAG 2.2 AA) & PERFORMANCE STANDARDS
+
+ * First Rule of ARIA: Never use ARIA if a native HTML5 element provides the
+   behavior natively.
+ * Images: MUST include meaningful alt attributes (alt="" with
+   aria-hidden="true" only for purely decorative images), explicit width and
+   height to prevent layout shift (CLS), loading="lazy" + decoding="async" for
+   below-the-fold images, and fetchpriority="high" for the main Hero LCP image.
+ * Buttons vs Links: Use <a href="..."> strictly for URL navigation, and <button
+   type="button"> for in-page actions, modals, dropdowns, or toggles.
+ * CRITICAL: Always specify type="button" on non-submit buttons inside <form> to
+   prevent accidental submissions.
+ * Icon-only buttons MUST have an aria-label (e.g., <button type="button"
+   aria-label="Close Menu">).
+
+
+5. SMART FORMS & INPUT VALIDATION
+
+ * Every <input>, <select>, and <textarea> MUST be paired with an explicit
+   <label for="id">. Never rely solely on placeholder.
+ * Group related inputs (radio buttons, checkboxes, address fields) using
+   <fieldset> and <legend>.
+ * Use proper input types (type="email", type="tel", type="url", type="search",
+   type="date") and autocomplete attributes (autocomplete="email",
+   autocomplete="name").
+ * Use native HTML5 validation attributes (required, minlength, pattern) before
+   JavaScript validation.
+
+
+6. FORBIDDEN ANTI-PATTERNS (NEVER USE)
+
+ * NEVER use deprecated tags: <font>, <center>, <marquee>, <blink>, <u> for
+   non-links, or <table> for page layouts.
+ * NEVER use inline style="..." attributes unless dynamically calculated by
+   JavaScript.
+
+
+
+
+
+==========================================================================
+
+
+SOURCE 02: MODERN CSS3, GRID/FLEXBOX & ARCHITECTURE MASTERY
+
+
+ROLE: STRICT STYLING, LAYOUT & ANIMATION RULES FOR AI WEBSITE FACTORY
+
+
+1. MODERN PRODUCTION CSS RESET (MANDATORY BASELINE)
+
+Every standalone stylesheet MUST begin with a modern, accessible reset:
+
+@layer reset, base, components, utilities;
+
+@layer reset {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    color-scheme: light dark;
+  }
+
+  body {
+    min-height: 100dvh; /* Never use 100vh due to mobile browser chrome bug */
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeSpeed;
+  }
+
+  img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  input, button, textarea, select {
+    font: inherit;
+    color: inherit;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+    line-height: 1.2;
+  }
+
+  p, li, figcaption {
+    text-wrap: pretty;
+    max-width: 72ch; /* Optimal reading line-length */
+  }
+}
+
+
+
+2. DESIGN TOKENS, CUSTOM PROPERTIES & COLOR ARCHITECTURE
+
+ * Never hardcode hex/rgb colors or magic numbers inside component rules. Always
+   define semantic CSS Custom Properties inside :root.
+ * Use modern oklch() or hsl() color spaces and color-mix() for hover/surface
+   states.
+ * Use @property when animating custom CSS variables (such as gradients or
+   angles).
+
+@layer base {
+  :root {
+    /* Fluid Typography Scale (Zero Media Queries Needed) */
+    --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+    --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+    --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    --text-lg: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+    --text-xl: clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem);
+    --text-hero: clamp(2.25rem, 1.5rem + 3.5vw, 4.25rem);
+
+    /* Fluid Spacing Scale */
+    --space-xs: clamp(0.5rem, 0.45rem + 0.25vw, 0.75rem);
+    --space-sm: clamp(0.75rem, 0.65rem + 0.5vw, 1.25rem);
+    --space-md: clamp(1.25rem, 1rem + 1.25vw, 2.25rem);
+    --space-lg: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+    --space-section: clamp(4rem, 3rem + 5vw, 8rem);
+
+    /* Semantic Surface & Text Tokens */
+    --bg-primary: #ffffff;
+    --bg-surface: #f8fafc;
+    --text-primary: #0f172a;
+    --text-muted: #475569;
+    --accent: #2563eb;
+    --accent-hover: color-mix(in srgb, var(--accent) 85%, black);
+    --border-subtle: rgba(15, 23, 42, 0.1);
+
+    /* Radii & Shadows */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1.25rem;
+    --radius-full: 9999px;
+    --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+  }
+
+  [data-theme="dark"] {
+    --bg-primary: #090d16;
+    --bg-surface: #111827;
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #3b82f6;
+    --border-subtle: rgba(248, 250, 252, 0.12);
+  }
+}
+
+
+
+3. CSS GRID MASTERY (2-DIMENSIONAL LAYOUTS)
+
+ * Use CSS Grid for page skeletons, card grids, asymmetric bento layouts, and
+   overlapping elements.
+ * Auto-Responsive Card Grid (Zero Media Queries):
+   
+   .responsive-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+     gap: var(--space-md);
+   }
+   
+
+ * 12-Column Enterprise Grid & Bento Spanning:
+   
+   .bento-grid {
+     display: grid;
+     grid-template-columns: repeat(12, 1fr);
+     gap: var(--space-md);
+   }
+   .bento-wide { grid-column: span 8; }
+   .bento-tall { grid-row: span 2; }
+   @media (max-width: 768px) {
+     .bento-wide, .bento-tall { grid-column: 1 / -1; grid-row: auto; }
+   }
+   
+
+ * Subgrid Alignment: Use grid-template-rows: subgrid; inside card components so
+   card headers, descriptions, and bottom CTA buttons align horizontally across
+   sibling cards regardless of text length.
+ * Stacking Without Absolute Positioning: Use display: grid; on parent and
+   grid-area: 1 / 1; on children to layer text over hero images cleanly.
+
+
+4. FLEXBOX MASTERY (1-DIMENSIONAL ALIGNMENT)
+
+ * Use Flexbox for navbars, button groups, badge rows, centering, and linear
+   content distribution.
+ * Always use gap instead of margins between flex siblings.
+ * Equal-Width Flex Items: Use flex: 1 1 0%; (not flex: 1 alone when content
+   widths vary wildly) and set min-width: 0; to prevent text overflow truncation
+   bugs.
+ * Sticky Footer App Shell:
+   
+   .page-shell {
+     display: flex;
+     flex-direction: column;
+     min-height: 100dvh;
+   }
+   .page-shell > main {
+     flex: 1;
+   }
+   
+
+
+5. CONTAINER QUERIES & MODERN SELECTORS
+
+ * Prefer Container Queries (@container) over viewport @media queries for
+   reusable components (cards, sidebars, widgets) so they adapt to their parent
+   container width:
+   
+   .card-wrapper {
+     container-type: inline-size;
+     container-name: card;
+   }
+   @container card (min-width: 420px) {
+     .card {
+       display: grid;
+       grid-template-columns: 160px 1fr;
+       align-items: center;
+     }
+   }
+   
+
+ * Relational Selector :has(): Style parent containers based on child states
+   without JavaScript (e.g.,
+   .form-group:has(input:invalid:not(:placeholder-shown)) or
+   body:has(dialog[open]) { overflow: hidden; }).
+ * Low-Specificity Overrides: Use :where(...) for default base rules (0
+   specificity) and :is(...) to group repetitive selectors cleanly.
+ * Native CSS Nesting: Use & for pseudo-classes and state modifiers (&:hover,
+   &:focus-visible, &[aria-expanded="true"]), keeping nesting depth <= 3 levels.
+
+
+6. HIGH-PERFORMANCE GPU ANIMATIONS & ACCESSIBILITY
+
+ * CRITICAL PERFORMANCE RULE: Animate ONLY GPU-composited properties: transform
+   (translate, scale, rotate), opacity, and clip-path.
+ * NEVER animate layout-triggering properties (width, height, top, left, margin,
+   padding, border-width).
+ * Smooth Entry Animations (@starting-style):
+   
+   dialog[open] {
+     opacity: 1;
+     transform: translateY(0) scale(1);
+     transition: opacity 0.25s ease-out, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+   }
+   @starting-style {
+     dialog[open] {
+       opacity: 0;
+       transform: translateY(12px) scale(0.97);
+     }
+   }
+   
+
+ * Accessible Focus Ring: Never remove outline without providing a visible
+   :focus-visible indicator:
+   
+   :focus-visible {
+     outline: 2px solid var(--accent);
+     outline-offset: 3px;
+   }
+   
+
+ * Mandatory Reduced Motion Compliance:
+   
+   @media (prefers-reduced-motion: reduce) {
+     *, *::before, *::after {
+       animation-duration: 0.01ms !important;
+       animation-iteration-count: 1 !important;
+       transition-duration: 0.01ms !important;
+       scroll-behavior: auto !important;
+     }
+   }
+   
+
+
+7. MODERN VISUAL RECIPES (GLASSMORPHISM & ASPECT RATIO)
+
+ * Glassmorphism Surface:
+   
+   .glass-panel {
+     background: color-mix(in srgb, var(--bg-surface) 75%, transparent);
+     backdrop-filter: blur(16px) saturate(180%);
+     -webkit-backdrop-filter: blur(16px) saturate(180%);
+     border: 1px solid var(--border-subtle);
+   }
+   
+
+ * Media Aspect Lock: Always enforce aspect-ratio: 16 / 9; (or 1 / 1, 4 / 3)
+   alongside object-fit: cover; on media containers to prevent layout jumps.
+
+
+8. FORBIDDEN CSS ANTI-PATTERNS (NEVER USE)
+
+ * NEVER use !important (except inside prefers-reduced-motion or utility
+   overrides).
+ * NEVER use fixed height (e.g., height: 300px;) on containers holding dynamic
+   text—use min-height instead.
+ * NEVER use float or table display hacks for page layout.
+ * NEVER use pixel (px) units for font-size—always use rem or clamp().
+
+
+
+
+
+==========================================================================
+
+
+SOURCE 09: VANILLA JAVASCRIPT (ES2025+) & DOM MASTERY
+
+
+ROLE: STRICT JAVASCRIPT RULES FOR FRAMEWORK-FREE WEB APPLICATIONS
+
+
+1. CORE ARCHITECTURE & MODULES
+
+ * ALWAYS use ES Modules. Load scripts in HTML using <script type="module"
+   src="app.js"></script>.
+ * type="module" automatically enforces use strict and defers execution,
+   eliminating the need for DOMContentLoaded wrappers.
+ * Never pollute the global window object. Encapsulate logic inside modules,
+   classes, or IIFEs.
+
+
+2. MODERN VARIABLE DECLARATION & SYNTAX
+
+ * NEVER use var. Use const by default, and let ONLY if the value gets
+   reassigned.
+ * Exploit modern operators for cleaner code:
+   * Optional Chaining: user?.profile?.name
+   * Nullish Coalescing: const timeout = config.timeout ?? 3000
+   * Logical Assignment: user.role ||= 'guest'
+ * Use destructuring to extract object/array properties: const { id, title } =
+   data;
+
+
+3. DOM SELECTION & MANIPULATION
+
+ * NEVER use jQuery. Use native DOM APIs exclusively.
+ * Use document.querySelector() and document.querySelectorAll() instead of
+   getElementById or getElementsByClassName.
+ * Note: querySelectorAll returns a NodeList. Convert it to an array for
+   map/filter operations: [...document.querySelectorAll('.item')].
+ * Use .classList for styling (.add(), .remove(), .toggle()). Avoid inline
+   element.style unless calculating dynamic pixel values.
+
+
+4. EVENT HANDLING & DELEGATION (CRITICAL FOR PERFORMANCE)
+
+ * Avoid attaching event listeners to hundreds of child elements (e.g., list
+   items). Use Event Delegation by attaching one listener to the parent
+   container:
+   
+   document.querySelector('.list-container').addEventListener('click', (e) => {
+     const btn = e.target.closest('.delete-btn');
+     if (!btn) return;
+     deleteItem(btn.dataset.id);
+   });
+   
+
+ * Memory Leak Prevention: Always use AbortController to remove event listeners
+   cleanly when a component or widget is destroyed:
+   
+   const controller = new AbortController();
+   window.addEventListener('resize', handleResize, { signal: controller.signal });
+   // To cleanup later: controller.abort();
+   
+
+
+5. MODERN ARRAYS & DATA TRANSFORMATION (ES2024+)
+
+ * Prefer immutable Array methods that return a new array without mutating the
+   original:
+   * Use toSorted() instead of sort().
+   * Use toReversed() instead of reverse().
+   * Use toSpliced() instead of splice().
+   * Use with(index, value) to replace an item at an index immutably.
+ * Use Object.groupBy() (ES2024) instead of complex reduce functions for
+   grouping data:
+   
+   const usersByRole = Object.groupBy(users, user => user.role);
+   
+
+ * Use Set to remove duplicates: const unique = [...new Set(array)];
+ * Use Map instead of standard Objects when keys are dynamic or non-string
+   types.
+
+
+6. ASYNC/AWAIT & FETCH API MASTERY
+
+ * NEVER use XMLHttpRequest or .then() chains. ALWAYS use async / await with try
+   / catch.
+ * Check response.ok explicitly before parsing JSON, because fetch() does not
+   throw errors on 404/500 HTTP statuses.
+   
+   async function fetchUser(id) {
+     try {
+       const response = await fetch(`/api/users/${id}`);
+       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+       return await response.json();
+     } catch (error) {
+       console.error('Fetch failed:', error.message);
+       // Show error UI state here
+     }
+   }
+   
+
+ * Use Promise.allSettled() instead of Promise.all() when executing multiple
+   independent API calls, so one failure doesn't crash the rest.
+
+
+7. HIGH-PERFORMANCE WEB APIS
+
+ * IntersectionObserver: ALWAYS use this for scroll animations, lazy loading
+   images, or infinite scrolling. Never use window.addEventListener('scroll')
+   for these tasks.
+   
+   const observer = new IntersectionObserver((entries) => {
+     entries.forEach(entry => {
+       if (entry.isIntersecting) {
+         entry.target.classList.add('animate-fade-in');
+         observer.unobserve(entry.target); // Run once
+       }
+     });
+   });
+   document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+   
+
+ * Debounce/Throttle: Always debounce rapid-firing events (like input or
+   scroll).
+
+
+8. SECURITY & ANTI-PATTERNS
+
+ * XSS Protection: NEVER use element.innerHTML when rendering user-generated
+   content. Use element.textContent or native DOM creation
+   (document.createElement).
+ * NEVER use eval() or setTimeout('string', time).
+ * NEVER use inline event handlers in HTML (<button onclick="doSomething()">).
+   Keep HTML and JS strictly separated.
+
+
+
+==========================================================================
+
+
+SOURCE 45: STATIC HTML/CSS/JS SINGLE-FILE BUILDER SKILL
+
+
+ROLE: STRICT RULES FOR ZERO-BUILD, FRAMEWORK-FREE WEB PROJECTS
+
+
+1. THE "NO-BUILD" GUARANTEE
+
+ * When the user requests a "static website", "single HTML file", or "no
+   framework", you MUST NOT generate any React, Next.js, Node.js, or TypeScript
+   code.
+ * NEVER generate a package.json, webpack.config.js, or require npm install.
+ * Everything must run natively in the browser just by double-clicking the
+   index.html file.
+
+
+2. FILE ARCHITECTURE RULES
+
+ * Single-File Mode: If the user asks for a single file, put ALL CSS inside
+   <style> within the <head> and ALL JavaScript inside <script type="module">
+   just before the closing </body> tag.
+ * Multi-File Mode (Default Static): If the user asks for a standard static
+   site, separate the concerns into exactly three files: index.html, style.css,
+   and app.js.
+
+
+3. EXTERNAL LIBRARIES VIA CDN (NO NPM)
+
+When building modern UIs without a bundler, utilize global CDNs securely:
+ * Tailwind CSS (Zero-Build Play CDN): Use ONLY if the user wants Tailwind
+   without installing it. Add <script
+   src="https://cdn.tailwindcss.com"></script> to the <head>.
+   * Configure custom colors/fonts via script: <script>tailwind.config = {
+     theme: { extend: { colors: { primary: '#2563eb' } } } }</script>
+ * Icons (Lucide): Add <script src="https://unpkg.com/lucide@latest"></script>
+   and initialize with lucide.createIcons(); in the JS file.
+ * Fonts (Google Fonts): Always use clean preconnect links for faster loading.
+   
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+4. VANILLA STATE MANAGEMENT (NO REACT HOOKS)
+
+ * Manage UI state (like open/closed modals, active tabs, mobile menu toggles)
+   using data-* attributes and aria-* attributes.
+ * Tab Switching Example without React:
+   
+   document.querySelectorAll('.tab-btn').forEach(btn => {
+     btn.addEventListener('click', (e) => {
+       // Reset all
+       document.querySelectorAll('.tab-btn').forEach(b => b.setAttribute('aria-selected', 'false'));
+       document.querySelectorAll('.tab-panel').forEach(p => p.hidden = true);
+       // Activate clicked
+       const targetPanel = document.getElementById(btn.dataset.target);
+       btn.setAttribute('aria-selected', 'true');
+       targetPanel.hidden = false;
+     });
+   });
+   
+
+
+5. SINGLE-FILE PRODUCTION BOILERPLATE (COPY-PASTE READY)
+
+If requested to build everything in one file, use this exact skeleton:
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Static App Engine</title>
+  
+  <!-- CSS Reset & Custom Styles -->
+  <style>
+    :root { --bg: #ffffff; --text: #0f172a; --accent: #2563eb; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100dvh; display: flex; flex-direction: column; }
+    main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>...</header>
+  
+  <main id="app-root">
+    <!-- AI Generates Content Here -->
+  </main>
+
+  <footer>...</footer>
+
+  <!-- App Logic -->
+  <script type="module">
+    'use strict';
+    
+    // UI Logic & Event Delegation
+    const initApp = () => {
+      document.body.addEventListener('click', (e) => {
+        if (e.target.matches('.action-btn')) {
+          console.log('Action triggered without a framework!');
+        }
+      });
+    };
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>
+
+
+ 
