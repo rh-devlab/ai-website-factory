@@ -34,7 +34,7 @@
   &nbsp;&nbsp;|&nbsp;&nbsp;
     <a href="https://www.instagram.com/reel/Df6zc6pgjXf/?lqvp=YjNvcXBnN3YwNnAy"><strong>Watch Full Mobile Tutorial On Instagram</strong></a>
   &nbsp;&nbsp;|&nbsp;&nbsp;
-  <a href="https://github.com/rh22042010-a11y/ai-website-factory/releases/download/AI-Website-Factory-v1.0/AI-Website-Factory-v1.0.zip"><strong>Download 15-File ZIP Pack (v1.0.0)</strong></a>
+  <a href="https://github.com/rh22042010-a11y/ai-website-factory/releases/download/AI-Website-Factory-v1.0/Ai.web.Factory.zip"><strong>Download 15-File ZIP Pack (v1.0.0)</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
   <a href="#3-minute-quick-start-guide"><strong>Quick-Start Setup</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
@@ -151,7 +151,7 @@ All **50 curated engineering standards** are consolidated into **15 high-density
 ## 3-Minute Quick-Start Guide
 
 ### Step 1: Acquire the 15 Mega-Files
-- **Option A (Fastest):** Download the pre-packaged `.zip` archive directly from our **[GitHub Release Section](https://github.com/rh22042010-a11y/ai-website-factory/releases/download/AI-Website-Factory-v1.0/AI-Website-Factory-v1.0.zip)** and extract it.
+- **Option A (Fastest):** Download the pre-packaged `.zip` archive directly from our **[GitHub Release Section](https://github.com/rh22042010-a11y/ai-website-factory/releases/download/AI-Website-Factory-v1.0/Ai.web.Factory.zip)** and extract it.
 - **Option B (Git):** Clone this repository:
   ```bash
   git clone [https://github.com](https://github.com/rh22042010-a11y/ai-website-factory.git)
