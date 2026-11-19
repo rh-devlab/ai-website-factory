@@ -521,3 +521,12 @@ totalPayment: Math.round(totalPayment),
 schedule,
 };
 }
+==========================================================================
+## DUAL-CONTROL BOUNDS LOCK & CHART NORMALIZATION LAW (MANDATORY)
+==========================================================================
+1. **Strict Min / Max / Step Parity (Zero Mismatch Law):**
+   - Whenever pairing an `<input type="range">` with a synchronized `<input type="number">`, BOTH elements and the JavaScript `clamp(val, min, max)` guard MUST share the **exact same `min`, `max`, and `step` attributes** (e.g., if `range` has `min="500" max="50000" step="100"`, the `number` input MUST also have `min="500" max="50000" step="100"`). NEVER give the numeric input a higher `max` than its paired slider.
+2. **100.0% Exact Chart Segment Normalization (Zero Overflow Law):**
+   - When rendering stacked bar charts or multi-segment progress bars with rounded percentages, NEVER round every segment independently (which can sum to `100.1%` and clip the final SVG `<rect>`).
+   - ALWAYS compute the final segment's percentage as the exact remainder:
+     `const lastPct = Math.max(0, Number((100 - sumOfPreviousRoundedPcts).toFixed(1)));`
