@@ -1,4 +1,4 @@
-1
+
 
 # SOURCE 01: MODERN HTML5 ARCHITECTURE & SEMANTIC RULES
 # Role: Strict Structural Rules for AI Website Factory
@@ -629,4 +629,25 @@ If requested to build everything in one file, use this exact skeleton:
 </html>
 
 
- 
+ ==========================================================================
+## UNIVERSAL STANDALONE HTML SERIALIZATION & PORTABILITY LAW (MANDATORY)
+==========================================================================
+Whenever generating a standalone single-file `index.html` (HTML5 + CSS3 + Vanilla JS), you MUST obey these 6 universal engineering rules so the code compiles and renders identically across all desktop browsers, mobile editors, clipboards, and offline environments:
+
+1. **ZERO BACKTICK TEMPLATE LITERALS IN STANDALONE `<script>` BLOCKS:**
+   - Strictly **FORBIDDEN**: Backtick template literals (`` `...${variable}...` ``) inside single-file HTML `<script>` blocks (which frequently get stripped or corrupted by clipboard managers, rich-text editors, and cross-platform paste pipelines, causing `SyntaxError`).
+   - Strictly **REQUIRED**: ALWAYS use standard single (`'...'`) or double (`"..."`) quotes with explicit `+` string concatenation (e.g., `'Year ' + row.year + ': $' + amount`).
+2. **CLEAN SPACED CSS UNIVERSAL SELECTORS:**
+   - Never write `*,*::before` without spaces, which Markdown parsers misread as italic formatting. Always write clean spaced selectors:
+     *, *::before, *::after { box-sizing: border-box; }
+3. **ZERO EXTERNAL FONT OR CDN `<link>` TAGS:**
+   - Never inject `<link href="https://fonts.googleapis.com/...">` or external CDN scripts inside standalone HTML files (which get blocked by security link filters or fail offline). Rely exclusively on native high-craft system font stacks:
+     - UI / Sans-Serif: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
+     - Monospace / Tabular Metrics: `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`
+4. **100% DEFINED CSS UTILITY & COMPONENT CLASSES:**
+   - Every CSS class referenced in static HTML OR dynamically injected via JavaScript (`innerHTML`) MUST be explicitly defined inside the `<style>` block—zero undefined utility classes allowed.
+5. **STRICT RAW HTML CODE FENCE BOUNDARIES:**
+   - Inside the HTML code block, Line 1 MUST strictly begin with `<!DOCTYPE html>` and the final line MUST end with `</html>`. NEVER place filenames (`# index.html`) or non-HTML headers inside the code fence.
+6. **UNIVERSAL SAVE & RUN INSTRUCTIONS (DESKTOP & MOBILE):**
+   - At the end of every single-file HTML delivery, instruct the user to save the code using a **plain-text code editor** (e.g., VS Code, Notepad, Sublime Text on Desktop; QuickEdit, Acode, or OneCompiler on Mobile) as `index.html` and open it in any web browser—explicitly warning against rich-text note apps (such as Google Docs, Notion, or Notesnook) which escape HTML tags into plain text.
+
