@@ -145,7 +145,7 @@ All **50 curated engineering standards** are consolidated into **15 high-density
 ## 3-Minute Quick-Start Guide
 
 ### Step 1: Acquire the 15 Mega-Files
-- **Option A (Fastest):** Download the pre-packaged `.zip` archive directly from our **[Blogger Resource Hub](YOUR_BLOGGER_URL_HERE)** and extract it.
+- **Option A (Fastest):** Download the pre-packaged `.zip` archive directly from our **[GitHub Release Section](https://github.com/rh22042010-a11y/ai-website-factory/releases/download/AI-Website-Factory-v1.0/AI-Website-Factory-v1.0.zip)** and extract it.
 - **Option B (Git):** Clone this repository:
   ```bash
   git clone [https://github.com](https://github.com/rh22042010-a11y/ai-website-factory.git)
