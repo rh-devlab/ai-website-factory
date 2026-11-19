@@ -102,6 +102,10 @@ SECTION 3: TYPESCRIPT STRICTNESS & RUNTIME LOGIC BUG AUDIT
       loading state cleanup (setIsLoading(false) inside finally).
     * Verify external HTTP requests include AbortController timeouts so hanging
       third-party APIs never freeze serverless functions.
+ 5. **API & Formatter Precision Check:**
+   - Verify date formatting functions strictly use `Intl.DateTimeFormat` (NEVER `Intl.NumberFormat`), and currency formatting strictly uses `Intl.NumberFormat` with `style: "currency"`.
+   - Confirm zero fictional external URLs (`https://...`) exist in metadata, mockups, or JSX—always use `process.env["NEXT_PUBLIC_APP_URL"]` or `http://localhost:3000` so link-redaction filters never corrupt generated code.
+
 
 
 
