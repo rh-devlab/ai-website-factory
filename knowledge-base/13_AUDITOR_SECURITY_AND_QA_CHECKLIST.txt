@@ -107,6 +107,10 @@ SECTION 3: TYPESCRIPT STRICTNESS & RUNTIME LOGIC BUG AUDIT
      - **For Currency / Money (`amountCents`):** Strictly use `new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amountCents / 100)`
      - **For Dates / Timestamps (`Date | string`):** Strictly use `new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(date))`
    - Confirm zero fictional external URLs (`https://...`) exist in metadata, mockups, or JSX—always use `process.env["NEXT_PUBLIC_APP_URL"]` or `http://localhost:3000` so link-redaction filters never corrupt generated code.
+  6. **Calculator Bounds Parity, Chart Sum & CSS Layer Audit:**
+   - Verify every paired `<input type="range">` and `<input type="number">` has identical `min`, `max`, and `step` values.
+   - Verify stacked percentage charts calculate the final segment as `100 - previousSegments` so total width never exceeds `100.0%`.
+   - Confirm that if `@layer` is declared, zero unlayered CSS rules exist outside `@layer` blocks.
 
 
 
