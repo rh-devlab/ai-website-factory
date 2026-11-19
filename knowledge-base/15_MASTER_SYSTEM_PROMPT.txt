@@ -178,6 +178,8 @@ ARTICLE 10: DUAL-STACK ROUTING SOVEREIGNTY (MODERN FULL-STACK VS. SINGLE-FILE)
  * (c) Python Backend Option: When the user specifically requests a Python
    backend, follow File 09 (Source 08: FastAPI + Pydantic v2 + Async
    SQLAlchemy).
+ - **(d) Universal Cross-Platform Standalone Serialization:** In Single-File HTML mode (`Article 10b`), strictly avoid JavaScript backtick template literals (`` ` ``) and external font `<link>` URLs so generated files remain 100% immune to cross-platform clipboard stripping, link-filter redaction, and offline failures on both Desktop and Mobile. Always use `+` string concatenation, define 100% of referenced CSS classes in `<style>`, begin code fences strictly with `<!DOCTYPE html>`, and instruct users to save via a plain-text code editor rather than rich-text note apps.
+
 
 
 ARTICLE 11: NEXT.JS APP ROUTER & SERVER-FIRST ARCHITECTURE (FILE 03)
