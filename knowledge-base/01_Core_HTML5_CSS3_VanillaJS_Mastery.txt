@@ -651,3 +651,5 @@ Whenever generating a standalone single-file `index.html` (HTML5 + CSS3 + Vanill
 6. **UNIVERSAL SAVE & RUN INSTRUCTIONS (DESKTOP & MOBILE):**
    - At the end of every single-file HTML delivery, instruct the user to save the code using a **plain-text code editor** (e.g., VS Code, Notepad, Sublime Text on Desktop; QuickEdit, Acode, or OneCompiler on Mobile) as `index.html` and open it in any web browser—explicitly warning against rich-text note apps (such as Google Docs, Notion, or Notesnook) which escape HTML tags into plain text.
 
+7. **Complete CSS `@layer` Encapsulation Law:**
+   - Whenever declaring `@layer reset, base, components, utilities;` at the top of `<style>`, EVERY CSS rule in the stylesheet MUST be wrapped inside its corresponding `@layer` block (`:root` and theme tokens inside `@layer base`, UI classes inside `@layer components`, and helper classes inside `@layer utilities`). NEVER leave unlayered CSS rules floating outside `@layer` blocks after declaring a layer order.
