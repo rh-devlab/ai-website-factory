@@ -2,7 +2,7 @@
 
 <br />
 
-<img src="https://icons8.com" alt="AI Website Factory Logo" width="84" height="84" />
+<img src="./assets/logo.svg" alt="AI Website Factory Logo" width="88" height="88" />
 
 # Open-Source AI Website Factory
 
@@ -16,10 +16,10 @@
   <a href="./LICENSE">
     <img src="https://shields.io" alt="MIT License" />
   </a>
-  <a href="#-the-15-mega-file-knowledge-architecture">
+  <a href="#the-15-mega-file-knowledge-architecture">
     <img src="https://shields.io" alt="15 Mega Files" />
   </a>
-  <a href="#-3-minute-quick-start-guide">
+  <a href="#3-minute-quick-start-guide">
     <img src="https://shields.io" alt="Google NotebookLM" />
   </a>
   <a href="./CONTRIBUTING.md">
@@ -28,13 +28,13 @@
 </p>
 
 <p align="center">
-  <a href="YOUR_YOUTUBE_URL_HERE"><strong>Watch Full Video Tutorial</strong></a>
+  <a href="https://github.com"><strong>Download 15-File ZIP Pack (v1.0.0)</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="YOUR_BLOGGER_URL_HERE"><strong>Download 15-File ZIP Pack (Blogger Hub)</strong></a>
+  <a href="#3-minute-quick-start-guide"><strong>Quick-Start Setup</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="#-3-minute-quick-start-guide"><strong>Quick-Start Setup</strong></a>
+  <a href="#production-prompt-cookbook"><strong>Prompt Cookbook</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="#-production-prompt-cookbook"><strong>Prompt Cookbook</strong></a>
+  <a href="./ACKNOWLEDGMENTS.md"><strong>Open-Source Credits</strong></a>
 </p>
 
 <br />
