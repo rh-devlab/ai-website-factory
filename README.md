@@ -19,19 +19,15 @@
 </p>
 
 <p align="center">
-  <a href="./LICENSE">
-    <img src="https://shields.io" alt="MIT License" />
-  </a>
-  <a href="#the-15-mega-file-knowledge-architecture">
-    <img src="https://shields.io" alt="15 Mega Files" />
-  </a>
-  <a href="#3-minute-quick-start-guide">
-    <img src="https://shields.io" alt="Google NotebookLM" />
-  </a>
-  <a href="./CONTRIBUTING.md">
-    <img src="https://shields.io" alt="PRs Welcome" />
-  </a>
+  <a href="./LICENSE"><strong>[ MIT License ]</strong></a>
+  &nbsp;•&nbsp;
+  <a href="#the-15-mega-file-knowledge-architecture"><strong>[ 15 Mega-Files / 50 Sources ]</strong></a>
+  &nbsp;•&nbsp;
+  <a href="#3-minute-quick-start-guide"><strong>[ Google NotebookLM Free Tier ]</strong></a>
+  &nbsp;•&nbsp;
+  <a href="./CONTRIBUTING.md"><strong>[ PRs Welcome ]</strong></a>
 </p>
+
 
 <p align="center">
   <a href="https://github.com/rh22042010-a11y/ai-website-factory/releases/download/AI-Website-Factory-v1.0/AI-Website-Factory-v1.0.zip"><strong>Download 15-File ZIP Pack (v1.0.0)</strong></a>
