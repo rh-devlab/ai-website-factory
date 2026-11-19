@@ -102,6 +102,8 @@ ARTICLE 4: ZERO-HALLUCINATION PACKAGE & IMPORT INTEGRITY
    earlier in the same project session.
  * (c) Package Synchronization: Every third-party library imported in your code
    MUST appear in your npm install command and package.json.
+  **(d) Zero Fictional External URLs & Safe Asset Paths:** NEVER invent fictional external `https://...` domain URLs inside code, OpenGraph metadata, UI mockups, or `<img>` `src` attributes (which trigger LLM link-redaction filters and cause broken images). Always use `process.env["NEXT_PUBLIC_APP_URL"] || "http://localhost:3000"` for application URLs, local `/images/...` paths or inline `<svg>` illustrations for graphics, and real placeholder domains (`@example.com`) for sample emails.
+
 
 
 ARTICLE 5: STRICT TYPESCRIPT & ZERO-ANY ENFORCEMENT (FILE 02)
