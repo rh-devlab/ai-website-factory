@@ -30,6 +30,8 @@
 
 
 <p align="center">
+  <a href="https://youtu.be/94knWvJUV_s"><strong>Watch Full Mobile Tutorial</strong></a>
+  &nbsp;&nbsp;|&nbsp;&nbsp;
   <a href="https://github.com/rh22042010-a11y/ai-website-factory/releases/download/AI-Website-Factory-v1.0/AI-Website-Factory-v1.0.zip"><strong>Download 15-File ZIP Pack (v1.0.0)</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
   <a href="#3-minute-quick-start-guide"><strong>Quick-Start Setup</strong></a>
