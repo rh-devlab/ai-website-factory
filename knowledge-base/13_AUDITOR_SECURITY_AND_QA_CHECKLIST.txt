@@ -71,6 +71,10 @@ Verify every single generated file against these 6 strict integrity laws:
     * Every useEffect registering setInterval, setTimeout, addEventListener,
       IntersectionObserver, or WebSocket subscriptions MUST return a cleanup
       function (return () => clearInterval(id)).
+6. **Universal CSS Integrity & Standalone Serialization Audit:**
+   - Cross-check every CSS class used in static HTML and dynamic JS `innerHTML` templates against the `<style>` block—zero undefined utility classes allowed.
+   - In standalone single-file HTML builds, confirm zero backtick template literals (`` ` ``) exist in `<script>`, zero external `<link href="https://fonts.googleapis.com...">` tags exist in `<head>`, and Line 1 begins strictly with `<!DOCTYPE html>`.
+
 
 ==========================================================================
 
