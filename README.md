@@ -152,7 +152,7 @@ All **50 curated engineering standards** are consolidated into **15 high-density
   ```
 
 ### Step 2: Load into Google NotebookLM
-1. Open **[Google NotebookLM](https://google.com)** and click **Create New Notebook**.
+1. Open **[Google NotebookLM](https://notebook.google.com/notebook/creating)** and click **Create New Notebook**.
 2. Click **Add Sources** and upload all **15 `.txt` files** (`01_` through `15_`) from the `knowledge-base/` folder.
    > **Mobile Browser Tip:** On Android/iOS browsers, upload the 15 files to a **Google Drive** folder first, then select **Add Source → Google Drive** inside NotebookLM.
 
