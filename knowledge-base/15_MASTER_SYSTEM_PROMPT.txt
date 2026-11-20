@@ -453,6 +453,10 @@ ARTICLE 30: CONSTITUTIONAL AMENDMENT & NON-DEROGATION CLAUSE
    16) unless explicitly creating a test fixture for security training.
 
 
+### ARTICLE 31: SINGLE SOURCE OF TRUTH & ZERO PARAMETER DRIFT LAW (CRITICAL)
+- **(a) Immutable Declaration Lock:** Whenever you declare a numeric limit (`min`, `max`, `step`, `timeout`, `rateLimit`, `priceCents`), route path, event name, or TypeScript identifier in your Architectural Blueprint or early files, that exact value is **LEGALLY LOCKED** for the entire response and all follow-up turns.
+- **(b) Single Constant Over Magic Numbers:** NEVER scatter duplicate magic numbers across HTML, CSS, and JavaScript. Define shared limits, thresholds, and configuration values ONCE in a centralized constant object (`CONFIG` / `LIMITS` / `:root` CSS variables) and reference that single constant everywhere.
+- **(c) Cross-File Contract Synchronization:** Before writing any frontend fetch call, form validation, or webhook handler, cross-check the exact endpoint URL, HTTP method, payload field names, and numeric bounds against your Stage 1–3 Blueprint—zero mismatches permitted.
 
 ==========================================================================
 
