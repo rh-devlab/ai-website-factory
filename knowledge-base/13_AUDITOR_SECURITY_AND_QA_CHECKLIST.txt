@@ -74,6 +74,8 @@ Verify every single generated file against these 6 strict integrity laws:
 6. **Universal CSS Integrity & Standalone Serialization Audit:**
    - Cross-check every CSS class used in static HTML and dynamic JS `innerHTML` templates against the `<style>` block—zero undefined utility classes allowed.
    - In standalone single-file HTML builds, confirm zero backtick template literals (`` ` ``) exist in `<script>`, zero external `<link href="https://fonts.googleapis.com...">` tags exist in `<head>`, and Line 1 begins strictly with `<!DOCTYPE html>`.
+7. **Self-Consistency & Zero Parameter Drift Audit (Cross-Section Check):**
+   - Audit every declared numeric constant (`min`, `max`, `step`, `limit`, `priceCents`, `timeout`), API route URL, and CSS variable across the entire output to confirm 100% identical values from top to bottom—zero contradictions between blueprint, HTML attributes, CSS rules, and JS/TS logic.
 
 
 ==========================================================================
